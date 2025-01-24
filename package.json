@@ -1,5 +1,6 @@
 {
   "name": "simple-todo-app",
+  "homepage": "https://andrewontheb.github.io/simple-todo-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -8,9 +9,12 @@
     "test": "vitest",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "gh-pages": "^6.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-spring": "^9.7.5",

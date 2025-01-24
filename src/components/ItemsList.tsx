@@ -12,7 +12,6 @@ const ItemsList: React.FC<ItemsListProps> = ({ todos, toggleComplete = () => {} 
     return (
         <div className='flex flex-col flex-wrap gap-5 min-h-32 max-h-40 overflow-y-auto'>
             {todos?.map(todo => (
-                
                 <TodoItem key={todo.id} todo={todo} toggleComplete={toggleComplete} />
             ))}
             {!todos.length && stubText}
