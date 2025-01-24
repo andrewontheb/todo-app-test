@@ -15,25 +15,25 @@
   To get started with the Simple Todo App, follow these steps:
 
   1. Clone the repository:
-    ```sh
-    git clone https://github.com/yourusername/simple-todo-app.git
+    ```
+    git clone https://github.com/andrewontheb/todo-app-test.git 
     ```
   2. Navigate to the project directory:
-    ```sh
-    cd simple-todo-app
+    ```
+    cd todo-app-test
     ```
   3. Install the dependencies:
-    ```sh
+    ```
     npm install
     ```
   4. Start the development server:
-    ```sh
+    ```
     npm run dev
     ```
 
   ## Usage
 
-  Once the development server is running, you can access the app at `http://localhost:3000`. From there, you can start adding, editing, and managing your tasks.
+  Once the development server is running, you can access the app at `http://localhost:5173/todo-app-test`. From there, you can start adding, editing, and managing your tasks.
 
   ## .gitignore
 
