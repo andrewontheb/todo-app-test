@@ -18,7 +18,7 @@ const MOCK_TODOS: Todo[] = [
 const App: React.FC = () => {
     const storedItems = localStorage.getItem('items');
     const [todos, setTodos] = useState<Todo[]>(storedItems?.length ? JSON.parse(storedItems) : MOCK_TODOS);
-    const [filteredTodos, setFilteredTodos] = useState<{ id: string; text: string; completed: boolean }[]>([]);
+    const [filteredTodos, setFilteredTodos] = useState<Todo[]>([]);
     const [statusType, setStatusType] = useState<StatusType>('All');
     useEffect(() => {
         if (todos.length) {
@@ -30,7 +30,7 @@ const App: React.FC = () => {
 
     /**
      * Add new todo
-     * @param {void} text - todo text
+     * @param {string} text - todo text
      * @returns {void}
      */
     const addTodo = (text: string) => {
