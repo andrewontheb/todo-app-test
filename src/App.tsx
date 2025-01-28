@@ -1,4 +1,4 @@
-import React, { MouseEvent, useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { StatusType, Todo } from './Interfaces';
 import ItemsList from './components/ItemsList';
 import StatusBar from './components/StatusBar';
@@ -12,50 +12,60 @@ const MOCK_TODOS: Todo[] = [
 ];
 
 /**
+ * Custom hook to use local storage
+ * @param {string} key - storage key
+ * @param {Todo[]} initialValue - initial value
+ * @returns {[Todo[], (value: Todo[]) => void]} A tuple containing the current value and a function to update it.
+ */
+const useLocalStorage = (key: string, initialValue: Todo[]) => {
+    const [storedValue, setStoredValue] = useState<Todo[]>(() => {
+        try {
+            const item = localStorage.getItem(key);
+            return item ? JSON.parse(item) : initialValue;
+        } catch (error) {
+            console.error(error);
+            return initialValue;
+        }
+    });
+
+    useEffect(() => {
+        if (storedValue.length) {
+            localStorage.setItem(key, JSON.stringify(storedValue));
+        } else {
+            localStorage.removeItem(key);
+        }
+    }, [key, storedValue]);
+
+    return [storedValue, setStoredValue] as const;
+};
+
+/**
  * App component
  * @component
  */
 const App: React.FC = () => {
-    const storedItems = localStorage.getItem('items');
-    const [todos, setTodos] = useState<Todo[]>(storedItems?.length ? JSON.parse(storedItems) : MOCK_TODOS);
-    const [filteredTodos, setFilteredTodos] = useState<Todo[]>([]);
+    const [todos, setTodos] = useLocalStorage('items', MOCK_TODOS);
     const [statusType, setStatusType] = useState<StatusType>('All');
-    useEffect(() => {
-        if (todos.length) {
-            localStorage.setItem('items', JSON.stringify(todos));
-        } else {
-            localStorage.removeItem('items');
-        }
-    }, [todos]);
 
     /**
      * Add new todo
      * @param {string} text - todo text
      * @returns {void}
      */
-    const addTodo = (text: string) => {
-        const newTodos = [...todos, { id: Date.now().toString(), text, completed: false }];
-        setTodos(newTodos);
-        if (statusType !== 'Completed') {
-            setFilteredTodos(newTodos.filter(todo => !todo.completed));
-        }
-    };
+    const addTodo = useCallback((text: string) => {
+        setTodos(prevTodos => [...prevTodos, { id: Date.now().toString(), text, completed: false }]);
+    }, [setTodos]);
 
     /**
      * Toggle todo complete status
      * @param {string} id - todo id
      * @returns {void}
      */
-    const toggleComplete = (id: string) => {
-        const newTodos = todos.map(todo =>
+    const toggleComplete = useCallback((id: string) => {
+        setTodos(prevTodos => prevTodos.map(todo =>
             todo.id === id ? { ...todo, completed: !todo.completed } : todo
-        );
-        setTodos(newTodos);
-        if (statusType !== 'All') {
-            setFilteredTodos(newTodos.filter(todo => statusType === 'Completed' ?
-                todo.completed : !todo.completed));
-        }
-    };
+        ));
+    }, [setTodos]);
 
     /**
      * Change status filter
@@ -63,23 +73,28 @@ const App: React.FC = () => {
      * @param {StatusTypeefined} filterType - status type
      * @returns {void}
      */
-    const applyStatusFilter = (event: MouseEvent<HTMLButtonElement>, filterType: StatusType) => {
+    const applyStatusFilter = useCallback((event: React.MouseEvent<HTMLButtonElement>, filterType: StatusType) => {
         setStatusType(filterType);
-        setFilteredTodos(todos.filter(todo => filterType === 'Completed' ?
-            todo.completed : filterType === 'All' ? todo : !todo.completed));
-    };
+    }, []);
 
     /**
      * Clear completed todos
      * @returns {void}
      */
-    const clearCompleted = () => {
-        const updatedTodos = todos.filter(todo => !todo.completed);
-        setTodos(updatedTodos);
-        if (statusType === 'Completed') {
-            setFilteredTodos([]);
+    const clearCompleted = useCallback(() => {
+        setTodos(prevTodos => prevTodos.filter(todo => !todo.completed));
+    }, [setTodos]);
+
+    const filteredTodos = useMemo(() => {
+        switch (statusType) {
+            case 'Completed':
+                return todos.filter(todo => todo.completed);
+            case 'Active':
+                return todos.filter(todo => !todo.completed);
+            default:
+                return todos;
         }
-    }
+    }, [todos, statusType]);
 
     return (
         <div className='card card border-indigo-200 border-2
@@ -91,7 +106,7 @@ const App: React.FC = () => {
                     e.currentTarget.value = '';
                 }
             }} />
-            <ItemsList todos={statusType === 'All' ? todos : filteredTodos} toggleComplete={toggleComplete} />
+            <ItemsList todos={filteredTodos} toggleComplete={toggleComplete} />
             <StatusBar todos={todos}
                 statusType={statusType}
                 applyStatusFilter={applyStatusFilter}
